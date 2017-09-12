@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>TinyApp</title>
+</head>
+<body>
+  <ul>
+    <% for (var key in urls) { %>
+    <li>URL: <%= urls[key] %>, shortened URL: <%= `http://localhost:8080/urls/${key}` %> </li>
+    <% } %>
+  </ul>
+  <a href = #>Shorten Your URL</a>
+</body>
+</html>
