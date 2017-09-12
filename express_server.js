@@ -9,7 +9,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 function generateRandomString(aString) {
-  let randomString = Math.floor((1 + Math.random()) * 0x10000000).toString(36);
+  let randomString = '';
+  let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+    for (var i = 0; i < 6; i++) {
+      randomString += possible.charAt(Math.floor(Math.random() * possible.length));
+    };
+
+  // let randomString = Math.floor((1 + Math.random()) * 0x10000000).toString(36);
   return randomString;
 }
 
@@ -42,7 +49,8 @@ app.get("/urls/:id", (request, response) => {
 
 // posting to the server data (url in this case)
 app.post("/urls", (req, res) => {
-  // urlDatabase[req.body.longURL] = generateRandomString();
+  urlDatabase[generateRandomString()] = req.body.longURL;
+  console.log(urlDatabase);
   res.send("Ok");
 });
 
