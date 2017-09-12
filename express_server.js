@@ -8,6 +8,11 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
+function generateRandomString(aString) {
+  let randomString = Math.floor((1 + Math.random()) * 0x10000000).toString(36);
+  return randomString;
+}
+
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -26,7 +31,7 @@ app.get("/urls/new", (request, response) => {
   response.render("urls_new");
 });
 
-// requesting/asking the server 
+// requesting/asking the server
 app.get("/urls/:id", (request, response) => {
   let templateVars = {
     shortUrl: request.params.id,
@@ -37,7 +42,7 @@ app.get("/urls/:id", (request, response) => {
 
 // posting to the server data (url in this case)
 app.post("/urls", (req, res) => {
-  // urlDatabase[req.body.longURL] = ;
+  // urlDatabase[req.body.longURL] = generateRandomString();
   res.send("Ok");
 });
 
