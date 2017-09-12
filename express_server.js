@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 const urlDatabase = {
@@ -14,7 +14,7 @@ const urlDatabase = {
 };
 
 app.get("/", (request, response) => {
-  response.end("Hello!");
+  response.end("Main Page");
 });
 
 app.get("/urls", (request, response) => {
@@ -22,14 +22,27 @@ app.get("/urls", (request, response) => {
   response.render("urls_index", templateVars);
 });
 
+app.get("/urls/new", (request, response) => {
+  response.render("urls_new");
+});
+
+// requesting/asking the server 
 app.get("/urls/:id", (request, response) => {
   let templateVars = {
     shortUrl: request.params.id,
     longUrl: urlDatabase[request.params.id]
   };
-  // console.log(request.params);
   response.render("urls_show", templateVars);
 });
+
+// posting to the server data (url in this case)
+app.post("/urls", (req, res) => {
+  // urlDatabase[req.body.longURL] = ;
+  res.send("Ok");
+});
+
+// req.body.longURL
+// which we will store in a variable called urlDatabase
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
