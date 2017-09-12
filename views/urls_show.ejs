@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <% include ./partial/_header %>
 </head>
+
 <body>
   <ul>
-    <li>URL: <%= longUrl %>, shortened URL: <%= `http://localhost:8080/urls/${shortUrl}` %> </li>
+    <li>URL:
+      <%= longUrl %>, shortened URL:
+        <%= `http://localhost:8080/urls/${shortUrl}` %>
+    </li>
   </ul>
 </body>
+
 </html>

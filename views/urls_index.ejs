@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <% include ./partial/_header %>
 </head>
+
 <body>
   <ul>
     <% for (var key in urls) { %>
-      <li>URL: <%= urls[key] %>, shortened URL: <%= `http://localhost:8080/urls/${key}` %> </li>
-    <% } %>
+      <li>URL:
+        <%= urls[key] %>, shortened URL:
+          <%= `http://localhost:8080/urls/${key}` %>
+      </li>
+      <% } %>
   </ul>
-  <a href = #>Shorten Your URL</a>
+  <a href=#>Shorten Your URL</a>
 </body>
+
 </html>
