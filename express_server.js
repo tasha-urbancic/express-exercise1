@@ -20,13 +20,14 @@ app.get("/urls", (request, response) => {
   response.render("urls_index", templateVars);
 });
 
-// app.get("/urls.json", (request, response) => {
-//   response.json(urlDatabase);
-// });
-
-// app.get("/hello", (req, res) => {
-//   res.end("<html><body>Hello <b>World</b></body></html>\n");
-// });
+app.get("/urls/:id", (request, response) => {
+  let templateVars = {
+    shortUrl: request.params.id,
+    longUrl: urlDatabase[request.params.id]
+  };
+  // console.log(request.params);
+  response.render("urls_show", templateVars);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
