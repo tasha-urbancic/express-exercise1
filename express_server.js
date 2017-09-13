@@ -43,21 +43,25 @@ app.get("/urls/new", (request, response) => {
 
 app.get("/u/:shortURL", (request, response) => {
   if (urlDatabase[request.params.shortURL] === undefined){
-    response.status(404);
-    response.end(`ERROR 404, TinyUrl doesn't exist`);
+    response.redirect(404, "/urls/new");
   } else {
     let longURL = urlDatabase[request.params.shortURL];
+    response.status(302);
     response.redirect(longURL);
   }
 });
 
 // requesting/asking the server
 app.get("/urls/:id", (request, response) => {
-  let templateVars = {
-    shortURL: request.params.id,
-    longURL: urlDatabase[request.params.id]
-  };
-  response.render("urls_show", templateVars);
+  if (urlDatabase[request.params.id] === undefined){
+    response.redirect(404, "/urls/new");
+  } else {
+    let templateVars = {
+      shortURL: request.params.id,
+      longURL: urlDatabase[request.params.id]
+    };
+    response.render("urls_show", templateVars);
+  }
 });
 
 // posting to the server data (url in this case)
