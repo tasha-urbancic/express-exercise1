@@ -2,25 +2,34 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
-var cookieParser = require('cookie-parser');
-
-//cookie-parser helps us read the values from the cookie
-//To set the values on the cookie, we can use res.cookie, as provided by Express:
-//res.cookie(name, value [, options])
-// Sets cookie name to value. The value parameter may be a string or object converted to JSON.
-
-//we will use a simple unsigned cookie to track the username of the person once they tell us their username
-
-app.use(cookieParser());
+var cookieParser = require("cookie-parser");
 
 // parse the form data
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
+app.use(cookieParser());
+
+///////////////////////////////////////////
 
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
+
+///////////////////////////////////////////
 
 function generateRandomString(aString) {
   let randomString = "";
@@ -62,7 +71,7 @@ app.get("/register", (request, response) => {
 });
 
 app.get("/u/:shortURL", (request, response) => {
-  if (urlDatabase[request.params.shortURL] === undefined){
+  if (urlDatabase[request.params.shortURL] === undefined) {
     response.redirect(404, "/urls/new");
   } else {
     let longURL = urlDatabase[request.params.shortURL];
@@ -73,7 +82,7 @@ app.get("/u/:shortURL", (request, response) => {
 
 // requesting/asking the server
 app.get("/urls/:id", (request, response) => {
-  if (urlDatabase[request.params.id] === undefined){
+  if (urlDatabase[request.params.id] === undefined) {
     response.redirect(404, "/urls/new");
   } else {
     let templateVars = {
@@ -85,6 +94,8 @@ app.get("/urls/:id", (request, response) => {
   }
 });
 
+///////////////////////////////////////////
+
 // posting to the server data (url in this case)
 app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
@@ -95,13 +106,13 @@ app.post("/urls", (request, response) => {
   response.redirect(`/urls/${shortURL}`);
 });
 
-app.post('/urls/:id/delete', (request, response) => {
+app.post("/urls/:id/delete", (request, response) => {
   let currKey = request.params.id;
   delete urlDatabase[currKey];
-  response.redirect('/urls');
+  response.redirect("/urls");
 });
 
-app.post('/urls/:id', (request, response) => {
+app.post("/urls/:id", (request, response) => {
   let newLongURL = request.body.longURL;
 
   let currKey = request.params.id;
@@ -109,24 +120,26 @@ app.post('/urls/:id', (request, response) => {
   // assign new website to value
   urlDatabase[currKey] = newLongURL;
 
-  response.redirect('/urls');
+  response.redirect("/urls");
 });
 
-app.post('/login', (request, response) => {
+app.post("/login", (request, response) => {
   let user = request.body.username;
-  response.cookie('username', user);
-  response.redirect('/urls');
+  response.cookie("username", user);
+  response.redirect("/urls");
 });
 
-app.post('/logout', (request, response) => {
+app.post("/logout", (request, response) => {
   let user = request.body.username;
-  response.clearCookie('username', user);
-  response.redirect('/urls');
+  response.clearCookie("username", user);
+  response.redirect("/urls");
 });
 
-app.post('/register', (request, response) => {
-  response.redirect('/urls');
+app.post("/register", (request, response) => {
+  response.redirect("/urls");
 });
+
+///////////////////////////////////////////
 
 //start the server
 app.listen(PORT, () => {
