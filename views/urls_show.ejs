@@ -9,14 +9,14 @@
   <ul>
 
     <li> Short URL:
-        <%= `/urls/${shortURL}` %>
+      <%= `/urls/${shortURL}` %>
     </li>
 
     <form action='/urls/<%=shortURL%>' method="POST" style="margin:15px;">
       <input id="longURL" type="text" name="longURL" value=<%=longURL%> style="width: 300px">
       <button type=‘submit’>Update TinyUrl Link</button>
     </form>
-      
+
     </form>
 
   </ul>

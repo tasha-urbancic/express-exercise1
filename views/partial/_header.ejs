@@ -4,8 +4,21 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <title>TinyApp</title>
 
-<form action='/login' method="POST" style="margin:15px;">
-  <label for="username">name:</label>
-  <input id="username" type="text" name="username" placeholder='enter login name' style="width: 300px">
-  <button type='submit'>Submit</button>
-</form>
+
+<% if (username === undefined) { %>
+
+  <form action='/login' method="POST" style="margin:15px;">
+    <label for="username">name:</label>
+    <input id="username" type="text" name="username" placeholder='enter login name' style="width: 300px">
+    <button type='submit'>Submit</button>
+  </form>
+
+  <% } else { %>
+
+    <form action='/logout' method="POST" style="margin:15px;">
+      <label for="username">name:</label>
+      <input id="username" type="text" name="username" value=<%=username%> style="width: 300px">
+      <button type='submit'>Logout</button>
+    </form>
+
+    <% } %>
