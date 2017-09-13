@@ -9,7 +9,10 @@
   <ul>
 
     <li> Short URL:
-        <%= `/urls/${shortURL}` %> --> <a><%=longURL%></a>
+        <%= `/urls/${shortURL}` %> --> 
+        <a href=<%=longURL%>>
+          <%=longURL%>
+        </a>
     </li>
 
     <form action='/urls/<%=shortURL%>' method="POST" style="margin:15px;">
