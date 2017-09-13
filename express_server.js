@@ -17,13 +17,13 @@ const urlDatabase = {
 };
 
 const users = {
-  userRandomID: {
-    id: "sara daniels",
+  "b7c9W3": {
+    id: "b7c9W3",
     email: "sara.daniels@gmail.com",
     password: "purple-monkey-dinosaur"
   },
-  user2RandomID: {
-    id: "john gregory",
+  "S4f1p8": {
+    id: "S4f1p8",
     email: "johndgregory@gmail.com",
     password: "dishwasher-funk"
   }
@@ -31,7 +31,7 @@ const users = {
 
 ///////////////////////////////////////////
 
-function generateRandomString(aString) {
+function generateRandomString() {
   let randomString = "";
   let possible =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -136,6 +136,13 @@ app.post("/logout", (request, response) => {
 });
 
 app.post("/register", (request, response) => {
+  let randID = generateRandomString();
+  users[randID] = {
+    id: randID,
+    email: request.body.email,
+    password: request.body.password
+  };
+  response.cookie("user_id", users[randID].id);
   response.redirect("/urls");
 });
 
