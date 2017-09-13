@@ -9,6 +9,8 @@ var cookieParser = require('cookie-parser');
 //res.cookie(name, value [, options])
 // Sets cookie name to value. The value parameter may be a string or object converted to JSON.
 
+//we will use a simple unsigned cookie to track the username of the person once they tell us their username
+
 app.use(cookieParser());
 
 // parse the form data
@@ -98,6 +100,13 @@ app.post('/urls/:id', (request, response) => {
   // assign new website to value
   urlDatabase[currKey] = newLongURL;
 
+  response.redirect('/urls');
+});
+
+app.post('/login', (request, response) => {
+  console.log(request.body.username);
+  let user = request.body.username;
+  response.cookie('username', user);
   response.redirect('/urls');
 });
 
