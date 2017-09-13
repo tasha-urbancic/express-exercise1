@@ -8,9 +8,12 @@
 <body>
   <ul>
     <% for (var key in urls) { %>
-      <li>URL:
-        <%= urls[key] %>, shortened URL:
-          <%= `/urls/${key}` %>
+      <li>
+        <%= `/urls/${key}` %> --> (
+          <%=urls[key]%>)
+            <form method="POST" action='/urls/<%=key%>/delete'>
+              <button type=‘submit’> DELETE </button>
+            </form>
       </li>
       <% } %>
   </ul>

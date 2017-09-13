@@ -1,12 +1,16 @@
-//Express server JS code
-
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 8080; // default port 8080
+const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
 
+// parse the form data
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
+
+const urlDatabase = {
+  b2xVn2: "http://www.lighthouselabs.ca",
+  "9sm5xK": "http://www.google.com"
+};
 
 function generateRandomString(aString) {
   let randomString = "";
@@ -18,15 +22,8 @@ function generateRandomString(aString) {
       Math.floor(Math.random() * possible.length)
     );
   }
-
-  // let randomString = Math.floor((1 + Math.random()) * 0x10000000).toString(36);
   return randomString;
 }
-
-const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
 
 app.get("/", (request, response) => {
   response.end("Main Page");
@@ -46,7 +43,7 @@ app.get("/u/:shortURL", (request, response) => {
     response.redirect(404, "/urls/new");
   } else {
     let longURL = urlDatabase[request.params.shortURL];
-    response.status(302);
+    response.statusCode(302);
     response.redirect(longURL);
   }
 });
@@ -75,10 +72,17 @@ app.post("/urls", (request, response) => {
   }
 
   urlDatabase[shortURL] = longURL;
-
+  response.statusCode(302);
   response.redirect(`/urls/${shortURL}`);
 });
 
+app.post('/urls/:id/delete', (request, response) => {
+  let currKey = request.params.id;
+  delete urlDatabase[currKey];
+  response.redirect('/urls');
+});
+
+//start the server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
