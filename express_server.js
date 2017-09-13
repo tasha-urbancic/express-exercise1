@@ -17,12 +17,12 @@ const urlDatabase = {
 };
 
 const users = {
-  "b7c9W3": {
+  b7c9W3: {
     id: "b7c9W3",
     email: "sara.daniels@gmail.com",
     password: "purple-monkey-dinosaur"
   },
-  "S4f1p8": {
+  S4f1p8: {
     id: "S4f1p8",
     email: "johndgregory@gmail.com",
     password: "dishwasher-funk"
@@ -83,7 +83,8 @@ app.get("/u/:shortURL", (request, response) => {
 // requesting/asking the server
 app.get("/urls/:id", (request, response) => {
   if (urlDatabase[request.params.id] === undefined) {
-    response.redirect(404, "/urls/new");
+    response.status(404);
+    response.send("404: Not Found");
   } else {
     let templateVars = {
       shortURL: request.params.id,
@@ -135,7 +136,37 @@ app.post("/logout", (request, response) => {
   response.redirect("/urls");
 });
 
+function findUserByEmail(userEmail, users) {
+  for (let user in users) {
+    if (users[user].email === userEmail) {
+      return users[user];
+    } else {
+      return;
+    }
+  }
+}
+
+// pluck _js, library of functions that implement these things
+//  low dash ripoff
+
 app.post("/register", (request, response) => {
+  let userEmail = request.body.email;
+  let userPassword = request.bodypassword;
+
+  // console.log(users);
+
+  if (!userEmail) {
+    response.status(400);
+    response.send("400: Bad Request");
+    return;
+  }
+
+  if (findUserByEmail(userEmail, users)) {
+    response.status(400);
+    response.send("400: Bad Request");
+    return;
+  }
+
   let randID = generateRandomString();
   users[randID] = {
     id: randID,
