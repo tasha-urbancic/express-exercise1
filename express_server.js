@@ -2,6 +2,14 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
+var cookieParser = require('cookie-parser');
+
+//cookie-parser helps us read the values from the cookie
+//To set the values on the cookie, we can use res.cookie, as provided by Express:
+//res.cookie(name, value [, options])
+// Sets cookie name to value. The value parameter may be a string or object converted to JSON.
+
+app.use(cookieParser());
 
 // parse the form data
 app.use(bodyParser.urlencoded({ extended: true }));
