@@ -54,6 +54,13 @@ app.get("/urls/new", (request, response) => {
   response.render("urls_new", templateVars);
 });
 
+app.get("/register", (request, response) => {
+  let templateVars = {
+    username: request.cookies["username"]
+  };
+  response.render("registration_page", templateVars);
+});
+
 app.get("/u/:shortURL", (request, response) => {
   if (urlDatabase[request.params.shortURL] === undefined){
     response.redirect(404, "/urls/new");
@@ -82,11 +89,6 @@ app.get("/urls/:id", (request, response) => {
 app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
   let longURL = request.body.longURL;
-
-  // //if doesnt start with http:// add it
-  // if (longURL.substring(0, 6) !== "http://") {
-  //   longURL = "http://" + longURL;
-  // }
 
   urlDatabase[shortURL] = longURL;
   response.status(302);
@@ -119,6 +121,10 @@ app.post('/login', (request, response) => {
 app.post('/logout', (request, response) => {
   let user = request.body.username;
   response.clearCookie('username', user);
+  response.redirect('/urls');
+});
+
+app.post('/register', (request, response) => {
   response.redirect('/urls');
 });
 
