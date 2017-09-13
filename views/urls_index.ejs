@@ -6,18 +6,30 @@
 </head>
 
 <body>
+
   <ul>
     <% for (var key in urls) { %>
       <li>
-        <%= `/urls/${key}` %> --> (
-          <%=urls[key]%>)
-            <form method="POST" action='/urls/<%=key%>/delete'>
-              <button type=‘submit’> DELETE </button>
-            </form>
+        <%= `/urls/${key}` %> -->
+          <a>
+            <%=urls[key]%>
+          </a>
+
+          <form method="POST" action='/urls/<%=key%>/delete' style="margin:15px;">
+            <button type=‘submit’> DELETE </button>
+          </form>
+
+          <form method="POST" action='/urls/<%=key%>/edit' style="margin:15px;">
+            <a href=#>edit</a>
+          </form>
+
       </li>
+
       <% } %>
   </ul>
-  <a href=#>Shorten Your URL</a>
+
+  <!-- <a href=#>Shorten Your URL</a> -->
+
 </body>
 
 </html>

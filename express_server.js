@@ -43,7 +43,7 @@ app.get("/u/:shortURL", (request, response) => {
     response.redirect(404, "/urls/new");
   } else {
     let longURL = urlDatabase[request.params.shortURL];
-    response.statusCode(302);
+    response.status(302);
     response.redirect(longURL);
   }
 });
@@ -66,19 +66,30 @@ app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
   let longURL = request.body.longURL;
 
-  //if doesnt start with http:// add it
-  if (longURL.substring(0, 6) !== "http://") {
-    longURL = "http://" + longURL;
-  }
+  // //if doesnt start with http:// add it
+  // if (longURL.substring(0, 6) !== "http://") {
+  //   longURL = "http://" + longURL;
+  // }
 
   urlDatabase[shortURL] = longURL;
-  response.statusCode(302);
+  response.status(302);
   response.redirect(`/urls/${shortURL}`);
 });
 
 app.post('/urls/:id/delete', (request, response) => {
   let currKey = request.params.id;
   delete urlDatabase[currKey];
+  response.redirect('/urls');
+});
+
+app.post('/urls/:id', (request, response) => {
+  let newLongURL = request.body.longURL;
+
+  let currKey = request.params.id;
+
+  // assign new website to value
+  urlDatabase[currKey] = newLongURL;
+
   response.redirect('/urls');
 });
 
