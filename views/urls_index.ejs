@@ -10,7 +10,7 @@
     <% for (var key in urls) { %>
       <li>URL:
         <%= urls[key] %>, shortened URL:
-          <%= `http://localhost:8080/urls/${key}` %>
+          <%= `/urls/${key}` %>
       </li>
       <% } %>
   </ul>

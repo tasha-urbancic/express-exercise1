@@ -9,12 +9,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
 function generateRandomString(aString) {
-  let randomString = '';
-  let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  
-    for (var i = 0; i < 6; i++) {
-      randomString += possible.charAt(Math.floor(Math.random() * possible.length));
-    };
+  let randomString = "";
+  let possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < 6; i++) {
+    randomString += possible.charAt(
+      Math.floor(Math.random() * possible.length)
+    );
+  }
 
   // let randomString = Math.floor((1 + Math.random()) * 0x10000000).toString(36);
   return randomString;
@@ -38,24 +41,39 @@ app.get("/urls/new", (request, response) => {
   response.render("urls_new");
 });
 
+app.get("/u/:shortURL", (request, response) => {
+  if (urlDatabase[request.params.shortURL] === undefined){
+    response.status(404);
+    response.end(`ERROR 404, TinyUrl doesn't exist`);
+  } else {
+    let longURL = urlDatabase[request.params.shortURL];
+    response.redirect(longURL);
+  }
+});
+
 // requesting/asking the server
 app.get("/urls/:id", (request, response) => {
   let templateVars = {
-    shortUrl: request.params.id,
-    longUrl: urlDatabase[request.params.id]
+    shortURL: request.params.id,
+    longURL: urlDatabase[request.params.id]
   };
   response.render("urls_show", templateVars);
 });
 
 // posting to the server data (url in this case)
-app.post("/urls", (req, res) => {
-  urlDatabase[generateRandomString()] = req.body.longURL;
-  console.log(urlDatabase);
-  res.send("Ok");
-});
+app.post("/urls", (request, response) => {
+  let shortURL = generateRandomString();
+  let longURL = request.body.longURL;
 
-// req.body.longURL
-// which we will store in a variable called urlDatabase
+  //if doesnt start with http:// add it
+  if (longURL.substring(0, 6) !== "http://") {
+    longURL = "http://" + longURL;
+  }
+
+  urlDatabase[shortURL] = longURL;
+
+  response.redirect(`/urls/${shortURL}`);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
