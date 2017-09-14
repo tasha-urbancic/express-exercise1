@@ -44,30 +44,58 @@ function generateRandomString() {
   return randomString;
 }
 
+function findUserByEmail(userEmail) {
+  for (let user in users) {
+    if (users[user].email === userEmail) {
+      return users[user];
+    }
+  }
+}
+
+function findUserByID(userID) {
+  for (let user in users) {
+    if (users[user].id === userID) {
+      return users[user];
+    }
+  }
+}
+
+///////////////////////////////////////////
+
+app.use(function(request, response, next) {
+  response.locals = {
+    urls: urlDatabase,
+    shortURL: request.params.id,
+    longURL: urlDatabase[request.params.id],
+    user: findUserByID(request.cookies["user_id"])
+  };
+  next();
+});
+
+///////////////////////////////////////////
+
 app.get("/", (request, response) => {
   response.end("Main Page");
 });
 
 app.get("/urls", (request, response) => {
-  let templateVars = {
-    urls: urlDatabase,
-    username: request.cookies["username"]
-  };
-  response.render("urls_index", templateVars);
+  if (request.cookies["user_id"]) {
+    response.render("urls_index");
+  } else {
+    response.redirect("/register");
+  }
 });
 
 app.get("/urls/new", (request, response) => {
-  let templateVars = {
-    username: request.cookies["username"]
-  };
-  response.render("urls_new", templateVars);
+  if (request.cookies["user_id"]) {
+    response.render("urls_new");
+  } else {
+    response.redirect("/register");
+  }
 });
 
 app.get("/register", (request, response) => {
-  let templateVars = {
-    username: request.cookies["username"]
-  };
-  response.render("registration_page", templateVars);
+  response.render("registration_page");
 });
 
 app.get("/u/:shortURL", (request, response) => {
@@ -82,16 +110,18 @@ app.get("/u/:shortURL", (request, response) => {
 
 // requesting/asking the server
 app.get("/urls/:id", (request, response) => {
+  console.log(request.params.id);
+  console.log(urlDatabase);
+  console.log(urlDatabase[request.params.id]);
   if (urlDatabase[request.params.id] === undefined) {
     response.status(404);
     response.send("404: Not Found");
   } else {
-    let templateVars = {
-      shortURL: request.params.id,
-      longURL: urlDatabase[request.params.id],
-      username: request.cookies["username"]
-    };
-    response.render("urls_show", templateVars);
+    if (request.cookies["user_id"]) {
+      response.render("urls_show");
+    } else {
+      response.redirect("/register");
+    }
   }
 });
 
@@ -125,33 +155,23 @@ app.post("/urls/:id", (request, response) => {
 });
 
 app.post("/login", (request, response) => {
-  let user = request.body.username;
-  response.cookie("username", user);
+  let user = request.body.email;
+  response.cookie("email", user);
   response.redirect("/urls");
 });
 
 app.post("/logout", (request, response) => {
-  let user = request.body.username;
-  response.clearCookie("username", user);
+  let user = request.body.email;
+  response.clearCookie("email", user);
   response.redirect("/urls");
 });
-
-function findUserByEmail(userEmail, users) {
-  for (let user in users) {
-    if (users[user].email === userEmail) {
-      return users[user];
-    } else {
-      return;
-    }
-  }
-}
 
 // pluck _js, library of functions that implement these things
 //  low dash ripoff
 
 app.post("/register", (request, response) => {
   let userEmail = request.body.email;
-  let userPassword = request.bodypassword;
+  let userPassword = request.body.password;
 
   // console.log(users);
 
@@ -161,7 +181,13 @@ app.post("/register", (request, response) => {
     return;
   }
 
-  if (findUserByEmail(userEmail, users)) {
+  if (!userPassword) {
+    response.status(400);
+    response.send("400: Bad Request");
+    return;
+  }
+
+  if (findUserByEmail(userEmail)) {
     response.status(400);
     response.send("400: Bad Request");
     return;
@@ -170,8 +196,8 @@ app.post("/register", (request, response) => {
   let randID = generateRandomString();
   users[randID] = {
     id: randID,
-    email: request.body.email,
-    password: request.body.password
+    email: userEmail,
+    password: userPassword
   };
   response.cookie("user_id", users[randID].id);
   response.redirect("/urls");
