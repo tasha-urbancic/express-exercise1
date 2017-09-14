@@ -12,8 +12,14 @@ app.use(cookieParser());
 ///////////////////////////////////////////
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b2xVn2: { 
+    fullURL: "http://www.lighthouselabs.ca",
+    userID: "b7c9W3"
+  }
+  "9sm5xK": {
+    fullURL: "http://www.google.com",
+    userID: "S4f1p8"
+  }
 };
 
 const users = {
@@ -133,27 +139,46 @@ app.get("/urls/:id", (request, response) => {
 app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
   let longURL = request.body.longURL;
+  let currUser = users[request.cookies["user_id"]].id;
 
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL].fullURL = longURL;
+  urlDatabase[shortURL].userID = currUser;
+
   response.status(302);
   response.redirect(`/urls/${shortURL}`);
 });
 
 app.post("/urls/:id/delete", (request, response) => {
+
   let currKey = request.params.id;
-  delete urlDatabase[currKey];
-  response.redirect("/urls");
+  let currUser = users[request.cookies["user_id"]].id;
+
+  if (currUser === urlDatabase[currKey].userID) {
+    delete urlDatabase[currKey];
+    response.redirect("/urls");
+  } else {
+    // not sure if these status codes are right
+    response.status(403);
+    response.send('403: Forbidden')
+  }
 });
 
 app.post("/urls/:id", (request, response) => {
+
   let newLongURL = request.body.longURL;
-
   let currKey = request.params.id;
+  let currUser = users[request.cookies["user_id"]].id;
 
-  // assign new website to value
-  urlDatabase[currKey] = newLongURL;
+  if (currUser === urlDatabase[currKey].userID) {
+    // assign new website to value
+    urlDatabase[currKey].fullURL = newLongURL;
+    response.redirect("/urls");
+  } else {
+    // not sure if these status codes are right
+    response.status(403);
+    response.send('403: Forbidden')
+  }
 
-  response.redirect("/urls");
 });
 
 app.post("/login", (request, response) => {
