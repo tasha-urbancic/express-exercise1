@@ -2,7 +2,8 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
-var cookieParser = require("cookie-parser");
+const cookieParser = require("cookie-parser");
+const bcrypt = require('bcrypt');
 
 // parse the form data
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -26,12 +27,12 @@ const users = {
   b7c9W3: {
     id: "b7c9W3",
     email: "sara.daniels@gmail.com",
-    password: "purple-monkey-dinosaur"
+    hashedPassword: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
   S4f1p8: {
     id: "S4f1p8",
     email: "johndgregory@gmail.com",
-    password: "dishwasher-funk"
+    hashedPassword: bcrypt.hashSync("dishwasher-funk", 10)
   }
 };
 
@@ -84,7 +85,8 @@ app.use(function(request, response, next) {
 ///////////////////////////////////////////
 
 app.get("/", (request, response) => {
-  response.end("Main Page");
+  // response.render('main_page',{user: users[request.cookies["user_id"]]});
+  response.end('Hello');
 });
 
 app.get("/urls", (request, response) => {
@@ -212,14 +214,15 @@ app.post("/urls/:id", (request, response) => {
 });
 
 app.post("/login", (request, response) => {
+
   let user = findUserByEmail(request.body.email);
 
-  if (!user || request.body.password !== user.password) {
+  if (!user) {
     response.status(404);
-    // response.render("login_page", {
-    //   error: "404: Not Found, Email and/or password are incorrect"
-    // });
-    response.redirect(404, "/register");
+    response.redirect(404, "/login");
+  } else if (!bcrypt.compareSync(request.body.password, user.hashedPassword)) {
+    response.status(404);
+    response.redirect(404, "/login");
   } else {
     console.log("password was right, creating cookie!");
     response.cookie("user_id", user);
@@ -238,17 +241,19 @@ app.post("/logout", (request, response) => {
 
 app.post("/register", (request, response) => {
   let userEmail = request.body.email;
-  let userPassword = request.body.password;
+  let userHashedPassword = bcrypt.hashSync(request.body.password, 10);
+
+  // console.log(`userHashedPassword ${userHashedPassword}`);
 
   if (!userEmail) {
     response.status(400);
-    response.render("login_page", {
+    response.render("registration_page", {
       error: "400: Bad Request, Please Enter A Username"
     });
     return;
   }
 
-  if (!userPassword) {
+  if (!userHashedPassword) {
     response.status(400);
     response.render("login_page", {
       error: "400: Bad Request, Please Enter a Password"
@@ -264,12 +269,15 @@ app.post("/register", (request, response) => {
     return;
   }
 
+  // console.log(users);
+
   let randID = generateRandomString();
   users[randID] = {
     id: randID,
     email: userEmail,
-    password: userPassword
+    hashedPassword: userHashedPassword
   };
+
   response.cookie("user_id", users[randID].id);
   response.redirect("/urls");
 });
