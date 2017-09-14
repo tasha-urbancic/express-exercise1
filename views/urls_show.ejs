@@ -12,8 +12,8 @@
       <%= `/urls/${shortURL}` %>
     </li>
 
-    <form action='/urls/<%=shortURL%>' method="POST" style="margin:15px;">
-      <input id="longURL" type="text" name="longURL" value=<%=longURL%> style="width: 300px">
+    <form action='/urls/<%=shortURL%>' method="POST">
+      <input id="longURL" type="text" name="longURL" value=<%=longURL%>>
       <button type=‘submit’>Update TinyUrl Link</button>
     </form>
 
