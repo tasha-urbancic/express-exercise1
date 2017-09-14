@@ -2,13 +2,18 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+// const cookieParser = require("cookie-parser");
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 // parse the form data
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-app.use(cookieParser());
+// app.use(cookieParser());
+
+app.use(cookieSession({
+  keys: ['fluffybunny', 'fluffypuppy', 'fluffyfishy']
+}));
 
 ///////////////////////////////////////////
 
@@ -77,10 +82,12 @@ app.use(function(request, response, next) {
   response.locals = {
     // urls: urlDatabase,
     error: undefined,
-    user: users[request.cookies["user_id"]]
+    user: request.session.user
   };
   next();
 });
+
+// user: users[request.cookies["user_id"]]
 
 ///////////////////////////////////////////
 
@@ -91,21 +98,18 @@ app.get("/", (request, response) => {
 
 app.get("/urls", (request, response) => {
 
-  if (request.cookies["user_id"]) {
-    let currUser = request.cookies["user_id"];
+  if (request.session.user) {
+    let currUser = request.session.user.id;
     let urlsFiltered = urlsForUser(currUser);
     response.render("urls_index", { urls: urlsFiltered });
   } else {
     response.status(401);
-    // response.render("login_page", {
-    //   error: "401: Unauthorized, Please Log In"
-    // });
     response.redirect(401, "/login");
   }
 });
 
 app.get("/urls/new", (request, response) => {
-  if (request.cookies["user_id"]) {
+  if (request.session.user) {
     response.render("urls_new");
   } else {
     response.status(401);
@@ -138,7 +142,7 @@ app.get("/u/:shortURL", (request, response) => {
 
 // requesting/asking the server
 app.get("/urls/:id", (request, response) => {
-  if (!request.cookies["user_id"]) {
+  if (!request.session.user) {
     response.status(401);
     response.render("login_page", {
       error: "401: Unauthorized, Must Log In First"
@@ -146,7 +150,7 @@ app.get("/urls/:id", (request, response) => {
     
   }
 
-  let currUser = request.cookies["user_id"];
+  let currUser = request.session.user.id;
   let urlsFiltered = urlsForUser(currUser);
   let access = Object.keys(urlsFiltered).includes(request.params.id);
 
@@ -172,7 +176,7 @@ app.get("/urls/:id", (request, response) => {
 app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
   let longURL = request.body.longURL;
-  let currUser = request.cookies["user_id"];
+  let currUser = request.session.user.id;
 
   urlDatabase[shortURL] = {fullURL: longURL, userID: currUser};
 
@@ -182,7 +186,7 @@ app.post("/urls", (request, response) => {
 
 app.post("/urls/:id/delete", (request, response) => {
   let currKey = request.params.id;
-  let currUser = request.cookies["user_id"];
+  let currUser = request.session.user.id;
   let urlsFiltered = urlsForUser(currUser);
 
   if (currUser === urlDatabase[currKey].userID) {
@@ -199,7 +203,7 @@ app.post("/urls/:id/delete", (request, response) => {
 app.post("/urls/:id", (request, response) => {
   let newLongURL = request.body.longURL;
   let currKey = request.params.id;
-  let currUser = request.cookies["user_id"];
+  let currUser = request.session.user.id;
   let urlsFiltered = urlsForUser(currUser);
 
   if (currUser === urlDatabase[currKey].userID) {
@@ -225,14 +229,16 @@ app.post("/login", (request, response) => {
     response.redirect(404, "/login");
   } else {
     console.log("password was right, creating cookie!");
-    response.cookie("user_id", user);
-    response.redirect("/");
+    // response.cookie("user_id", user);
+    request.session.user = user;
+    response.redirect("/urls");
   }
 });
 
 app.post("/logout", (request, response) => {
   let user = request.body.email;
-  response.clearCookie("user_id", user);
+  // response.clearCookie("user_id", user);
+  request.session = null;
   response.redirect("/login");
 });
 
@@ -242,8 +248,6 @@ app.post("/logout", (request, response) => {
 app.post("/register", (request, response) => {
   let userEmail = request.body.email;
   let userHashedPassword = bcrypt.hashSync(request.body.password, 10);
-
-  // console.log(`userHashedPassword ${userHashedPassword}`);
 
   if (!userEmail) {
     response.status(400);
@@ -269,8 +273,6 @@ app.post("/register", (request, response) => {
     return;
   }
 
-  // console.log(users);
-
   let randID = generateRandomString();
   users[randID] = {
     id: randID,
@@ -278,7 +280,10 @@ app.post("/register", (request, response) => {
     hashedPassword: userHashedPassword
   };
 
-  response.cookie("user_id", users[randID].id);
+  // response.cookie("user_id", users[randID].id);
+
+  request.session.user = users[randID];
+  
   response.redirect("/urls");
 });
 
