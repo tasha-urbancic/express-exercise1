@@ -8,12 +8,12 @@
 <body>
 
   <ul>
-    <% for (var key in urls) { %>
+    <% for (var key in urls_filtered) { %>
 
       <li>
 
         '/urls/<%=key%>' -->
-          <a href=<%=urls[key]%>><%=urls[key].fullURL%></a>
+          <a href=<%=urls[key]%>><%=urls_filtered[key].fullURL%></a>
 
           <a href='/urls/<%=key%>'>Edit</a>
 

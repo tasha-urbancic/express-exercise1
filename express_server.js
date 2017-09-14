@@ -58,19 +58,23 @@ function findUserByEmail(userEmail) {
   }
 }
 
-// function findUserByID(userID) {
-//   for (let user in users) {
-//     if (users[user].id === userID) {
-//       return users[user];
-//     }
-//   }
-// }
+function filterUrlsByID(ID){
+  let filtered = {};
+  for (let tinyUrl in urlDatabase) {
+    // if the persons id matches the tiny url creator
+    if (ID === urlDatabase[tinyUrl].userID) {
+      // assign tinyUrl object to filtered url database
+      filtered[tinyUrl] = urlDatabase[tinyUrl];
+    }
+  }
+  return filtered;
+}
 
 ///////////////////////////////////////////
 
 app.use(function(request, response, next) {
   response.locals = {
-    urls: urlDatabase,
+    // urls: urlDatabase,
     user: users[request.cookies["user_id"]]
   };
   next();
@@ -84,8 +88,10 @@ app.get("/", (request, response) => {
 
 app.get("/urls", (request, response) => {
 
+  // let urls_filtered = 
+
   if (request.cookies["user_id"]) {
-    response.render("urls_index");
+    response.render("urls_index", {templateVars: urls_filtered});
   } else {
     response.redirect("/login");
   }
@@ -111,7 +117,7 @@ app.get("/u/:shortURL", (request, response) => {
   if (urlDatabase[request.params.shortURL] === undefined) {
     response.redirect(404, "/urls/new");
   } else {
-    let longURL = urlDatabase[request.params.shortURL];
+    let longURL = urlDatabase[request.params.shortURL].fullURL;
     response.status(302);
     response.redirect(longURL);
   }
@@ -124,9 +130,9 @@ app.get("/urls/:id", (request, response) => {
     response.send("404: Not Found");
   } else {
     if (request.cookies["user_id"]) {
-      response.locals.shortURL = request.params.id;
-      response.locals.longURL = urlDatabase[request.params.id].fullURL;
-      response.render("urls_show");
+      let shortURL = request.params.id;
+      let longURL = urlDatabase[request.params.id].fullURL;
+      response.render("urls_show", {shortURL: shortURL, longURL: longURL});
     } else {
       response.redirect("/login");
     }
