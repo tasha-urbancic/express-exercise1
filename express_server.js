@@ -125,7 +125,7 @@ app.get("/urls/:id", (request, response) => {
   } else {
     if (request.cookies["user_id"]) {
       response.locals.shortURL = request.params.id;
-      response.locals.longURL = urlDatabase[request.params.id];
+      response.locals.longURL = urlDatabase[request.params.id].fullURL;
       response.render("urls_show");
     } else {
       response.redirect("/login");
