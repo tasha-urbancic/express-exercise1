@@ -52,37 +52,36 @@ function findUserByEmail(userEmail) {
   }
 }
 
-function findUserByID(userID) {
-  for (let user in users) {
-    if (users[user].id === userID) {
-      return users[user];
-    }
-  }
-}
+// function findUserByID(userID) {
+//   for (let user in users) {
+//     if (users[user].id === userID) {
+//       return users[user];
+//     }
+//   }
+// }
 
 ///////////////////////////////////////////
 
 app.use(function(request, response, next) {
   response.locals = {
     urls: urlDatabase,
-    shortURL: request.params.id,
-    longURL: urlDatabase[request.params.id],
-    user: findUserByID(request.cookies["user_id"])
+    user: users[request.cookies["user_id"]]
   };
   next();
 });
 
 ///////////////////////////////////////////
 
-app.get("/", (request, response) => {
-  response.end("Main Page");
-});
+// app.get("/", (request, response) => {
+//   response.end("Main Page");
+// });
 
 app.get("/urls", (request, response) => {
+
   if (request.cookies["user_id"]) {
     response.render("urls_index");
   } else {
-    response.redirect("/register");
+    response.redirect("/login");
   }
 });
 
@@ -90,12 +89,16 @@ app.get("/urls/new", (request, response) => {
   if (request.cookies["user_id"]) {
     response.render("urls_new");
   } else {
-    response.redirect("/register");
+    response.redirect("/login");
   }
 });
 
 app.get("/register", (request, response) => {
   response.render("registration_page");
+});
+
+app.get("/login", (request, response) => {
+  response.render("login_page");
 });
 
 app.get("/u/:shortURL", (request, response) => {
@@ -110,17 +113,16 @@ app.get("/u/:shortURL", (request, response) => {
 
 // requesting/asking the server
 app.get("/urls/:id", (request, response) => {
-  console.log(request.params.id);
-  console.log(urlDatabase);
-  console.log(urlDatabase[request.params.id]);
   if (urlDatabase[request.params.id] === undefined) {
     response.status(404);
     response.send("404: Not Found");
   } else {
     if (request.cookies["user_id"]) {
+      response.locals.shortURL = request.params.id;
+      response.locals.longURL = urlDatabase[request.params.id];
       response.render("urls_show");
     } else {
-      response.redirect("/register");
+      response.redirect("/login");
     }
   }
 });
@@ -155,14 +157,19 @@ app.post("/urls/:id", (request, response) => {
 });
 
 app.post("/login", (request, response) => {
-  let user = request.body.email;
-  response.cookie("email", user);
-  response.redirect("/urls");
+  let user = findUserByEmail(request.body.email);
+  if (!user) {
+    response.redirect('/register');
+  } else {
+    response.cookie("user_id", user.id);
+    response.redirect("/urls");
+  }
+  
 });
 
 app.post("/logout", (request, response) => {
   let user = request.body.email;
-  response.clearCookie("email", user);
+  response.clearCookie("user_id", user);
   response.redirect("/urls");
 });
 
@@ -172,8 +179,6 @@ app.post("/logout", (request, response) => {
 app.post("/register", (request, response) => {
   let userEmail = request.body.email;
   let userPassword = request.body.password;
-
-  // console.log(users);
 
   if (!userEmail) {
     response.status(400);
