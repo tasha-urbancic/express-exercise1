@@ -4,13 +4,27 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <title>TinyApp</title>
 
+<style>
+p.error {
+  color:red;
+}
+</style>
+
+<% if (error) { %>
+  <p class = 'error'><%=error%></p>
+<% } %>
+
 <% if (user) { %>
   
+  <p>
+    <a href='/urls'>See Your TinyUrls</a>
+    <a href='/urls/new'>Create a TinyUrl</a>
     <form action='/logout' method="POST">
       <label for="email">Logged in as <%=user.email%>:</label>
       <button type='submit'>Logout</button>
     </form>
- 
+  </p>
+
 <% } else { %>
 
   <a href='/register'>Register</a>

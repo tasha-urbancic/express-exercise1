@@ -58,7 +58,7 @@ function findUserByEmail(userEmail) {
   }
 }
 
-function filterUrlsByID(ID){
+function urlsForUser(ID) {
   let filtered = {};
   for (let tinyUrl in urlDatabase) {
     // if the persons id matches the tiny url creator
@@ -75,6 +75,7 @@ function filterUrlsByID(ID){
 app.use(function(request, response, next) {
   response.locals = {
     // urls: urlDatabase,
+    error: undefined,
     user: users[request.cookies["user_id"]]
   };
   next();
@@ -88,17 +89,16 @@ app.get("/", (request, response) => {
 
 app.get("/urls", (request, response) => {
 
-  let currUser = users[request.cookies["user_id"]].id;
-  let urlsFiltered = filterUrlsByID(currUser);
-
-  console.log(currUser);
-  console.log(users);
-  console.log(urlsFiltered);
-
   if (request.cookies["user_id"]) {
-    response.render("urls_index", {urls: urlsFiltered});
+    let currUser = users[request.cookies["user_id"]].id;
+    let urlsFiltered = urlsForUser(currUser);
+    response.render("urls_index", { urls: urlsFiltered });
   } else {
-    response.redirect("/login");
+    response.status(401);
+    // response.render("login_page", {
+    //   error: "401: Unauthorized, Please Log In"
+    // });
+    response.redirect(401, "/login");
   }
 });
 
@@ -106,7 +106,10 @@ app.get("/urls/new", (request, response) => {
   if (request.cookies["user_id"]) {
     response.render("urls_new");
   } else {
-    response.redirect("/login");
+    response.status(401);
+    response.render("login_page", {
+      error: "401: Unauthorized, Please Log In"
+    });
   }
 });
 
@@ -120,7 +123,10 @@ app.get("/login", (request, response) => {
 
 app.get("/u/:shortURL", (request, response) => {
   if (urlDatabase[request.params.shortURL] === undefined) {
-    response.redirect(404, "/urls/new");
+    response.status(404);
+    response.render("urls_new", {
+      error: "404: Not Found, TinyUrl does not exist"
+    });
   } else {
     let longURL = urlDatabase[request.params.shortURL].fullURL;
     response.status(302);
@@ -130,18 +136,32 @@ app.get("/u/:shortURL", (request, response) => {
 
 // requesting/asking the server
 app.get("/urls/:id", (request, response) => {
-  if (urlDatabase[request.params.id] === undefined) {
-    response.status(404);
-    response.send("404: Not Found");
-  } else {
-    if (request.cookies["user_id"]) {
-      let shortURL = request.params.id;
-      let longURL = urlDatabase[request.params.id].fullURL;
-      response.render("urls_show", {shortURL: shortURL, longURL: longURL});
-    } else {
-      response.redirect("/login");
-    }
+  if (!request.cookies["user_id"]) {
+    response.status(401);
+    response.render("login_page", {
+      error: "401: Unauthorized, Must Log In First"
+    });
+    
   }
+
+  let currUser = users[request.cookies["user_id"]].id;
+  let urlsFiltered = urlsForUser(currUser);
+  let access = Object.keys(urlsFiltered).includes(request.params.id);
+
+  if (!access) {
+    response.status(401);
+    response.render("error-page", {error: `401: Unauthorized, You Don't Have Access To This url`});
+  }
+
+  if (urlDatabase[request.params.id] === undefined) {
+    response.status(403);
+    response.render("error-page", {
+      error: "403: Forbidden, TinyUrl Does Not Exist"});
+  }
+
+  let shortURL = request.params.id;
+  let longURL = urlDatabase[request.params.id].fullURL;
+  response.render("urls_show", { shortURL: shortURL, longURL: longURL });
 });
 
 ///////////////////////////////////////////
@@ -152,65 +172,59 @@ app.post("/urls", (request, response) => {
   let longURL = request.body.longURL;
   let currUser = users[request.cookies["user_id"]].id;
 
-  urlDatabase[shortURL].fullURL = longURL;
-  urlDatabase[shortURL].userID = currUser;
+  urlDatabase[shortURL] = {fullURL: longURL, userID: currUser};
 
   response.status(302);
   response.redirect(`/urls/${shortURL}`);
 });
 
 app.post("/urls/:id/delete", (request, response) => {
-
   let currKey = request.params.id;
   let currUser = users[request.cookies["user_id"]].id;
+  let urlsFiltered = urlsForUser(currUser);
 
   if (currUser === urlDatabase[currKey].userID) {
     delete urlDatabase[currKey];
+    response.status(200);
     response.redirect("/urls");
   } else {
-    // not sure if these status codes are right
     response.status(403);
-    response.send('403: Forbidden')
+    response.render("error-page", {
+      error: "403: Forbidden, Must Be Your TinyUrl To Delete"});
   }
 });
 
 app.post("/urls/:id", (request, response) => {
-
   let newLongURL = request.body.longURL;
   let currKey = request.params.id;
   let currUser = users[request.cookies["user_id"]].id;
+  let urlsFiltered = urlsForUser(currUser);
 
   if (currUser === urlDatabase[currKey].userID) {
     // assign new website to value
     urlDatabase[currKey].fullURL = newLongURL;
     response.redirect("/urls");
   } else {
-    // not sure if these status codes are right
     response.status(403);
-    response.send('403: Forbidden')
+    response.render("error-page", {
+      error: "403: Forbidden, Must Be Your TinyUrl To Update"});
   }
-
 });
 
 app.post("/login", (request, response) => {
   let user = findUserByEmail(request.body.email);
 
-  if (!user) {
-    response.status(403);
-    response.send('403: Forbidden');
-    // response.redirect('/register');
-  }
-
-  if (request.body.password === user.password) {
-    console.log('password was right, creating cookie!');
-    response.cookie("user_id", user.id);
-    response.redirect("/");
+  if (!user || request.body.password !== user.password) {
+    response.status(404);
+    // response.render("login_page", {
+    //   error: "404: Not Found, Email and/or password are incorrect"
+    // });
+    response.redirect(404, "/register");
   } else {
-    response.status(403);
-    response.send('403: Forbidden');
-    // response.redirect("login");
+    console.log("password was right, creating cookie!");
+    response.cookie("user_id", user);
+    response.redirect("/");
   }
-  
 });
 
 app.post("/logout", (request, response) => {
@@ -228,19 +242,25 @@ app.post("/register", (request, response) => {
 
   if (!userEmail) {
     response.status(400);
-    response.send("400: Bad Request");
+    response.render("login_page", {
+      error: "400: Bad Request, Please Enter A Username"
+    });
     return;
   }
 
   if (!userPassword) {
     response.status(400);
-    response.send("400: Bad Request");
+    response.render("login_page", {
+      error: "400: Bad Request, Please Enter a Password"
+    });
     return;
   }
 
   if (findUserByEmail(userEmail)) {
-    response.status(400);
-    response.send("400: Bad Request");
+    response.status(403);
+    response.render("login_page", {
+      error: "403: Forbidden, Username Already Taken"
+    });
     return;
   }
 
