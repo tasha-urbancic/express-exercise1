@@ -233,7 +233,7 @@ app.post("/login", (request, response) => {
 app.post("/logout", (request, response) => {
   let user = request.body.email;
   response.clearCookie("user_id", user);
-  response.redirect("/urls");
+  response.redirect("/login");
 });
 
 // pluck _js, library of functions that implement these things
