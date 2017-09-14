@@ -12,10 +12,10 @@ app.use(cookieParser());
 ///////////////////////////////////////////
 
 const urlDatabase = {
-  b2xVn2: { 
+  b2xVn2: {
     fullURL: "http://www.lighthouselabs.ca",
     userID: "b7c9W3"
-  }
+  },
   "9sm5xK": {
     fullURL: "http://www.google.com",
     userID: "S4f1p8"
@@ -88,10 +88,15 @@ app.get("/", (request, response) => {
 
 app.get("/urls", (request, response) => {
 
-  // let urls_filtered = 
+  let currUser = users[request.cookies["user_id"]].id;
+  let urlsFiltered = filterUrlsByID(currUser);
+
+  console.log(currUser);
+  console.log(users);
+  console.log(urlsFiltered);
 
   if (request.cookies["user_id"]) {
-    response.render("urls_index", {templateVars: urls_filtered});
+    response.render("urls_index", {urls: urlsFiltered});
   } else {
     response.redirect("/login");
   }
