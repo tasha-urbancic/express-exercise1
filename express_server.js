@@ -72,9 +72,9 @@ app.use(function(request, response, next) {
 
 ///////////////////////////////////////////
 
-// app.get("/", (request, response) => {
-//   response.end("Main Page");
-// });
+app.get("/", (request, response) => {
+  response.end("Main Page");
+});
 
 app.get("/urls", (request, response) => {
 
@@ -158,11 +158,21 @@ app.post("/urls/:id", (request, response) => {
 
 app.post("/login", (request, response) => {
   let user = findUserByEmail(request.body.email);
+
   if (!user) {
-    response.redirect('/register');
-  } else {
+    response.status(403);
+    response.send('403: Forbidden');
+    // response.redirect('/register');
+  }
+
+  if (request.body.password === user.password) {
+    console.log('password was right, creating cookie!');
     response.cookie("user_id", user.id);
-    response.redirect("/urls");
+    response.redirect("/");
+  } else {
+    response.status(403);
+    response.send('403: Forbidden');
+    // response.redirect("login");
   }
   
 });

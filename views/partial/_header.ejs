@@ -4,11 +4,17 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
 <title>TinyApp</title>
 
+<a href='/register'>Register</a>
+
 <% if (user) { %>
   
     <form action='/logout' method="POST" style="margin:15px;">
       <label for="email">Logged in as <%=user.email%>:</label>
       <button type='submit'>Logout</button>
     </form>
+ 
+<% } else { %>
   
+  <a href='/login'>Login</a>
+   
 <% } %>
