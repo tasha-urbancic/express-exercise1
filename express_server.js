@@ -90,7 +90,7 @@ app.get("/", (request, response) => {
 app.get("/urls", (request, response) => {
 
   if (request.cookies["user_id"]) {
-    let currUser = users[request.cookies["user_id"]].id;
+    let currUser = request.cookies["user_id"];
     let urlsFiltered = urlsForUser(currUser);
     response.render("urls_index", { urls: urlsFiltered });
   } else {
@@ -124,7 +124,7 @@ app.get("/login", (request, response) => {
 app.get("/u/:shortURL", (request, response) => {
   if (urlDatabase[request.params.shortURL] === undefined) {
     response.status(404);
-    response.render("urls_new", {
+    response.render("error-page", {
       error: "404: Not Found, TinyUrl does not exist"
     });
   } else {
@@ -144,7 +144,7 @@ app.get("/urls/:id", (request, response) => {
     
   }
 
-  let currUser = users[request.cookies["user_id"]].id;
+  let currUser = request.cookies["user_id"];
   let urlsFiltered = urlsForUser(currUser);
   let access = Object.keys(urlsFiltered).includes(request.params.id);
 
@@ -170,7 +170,7 @@ app.get("/urls/:id", (request, response) => {
 app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
   let longURL = request.body.longURL;
-  let currUser = users[request.cookies["user_id"]].id;
+  let currUser = request.cookies["user_id"];
 
   urlDatabase[shortURL] = {fullURL: longURL, userID: currUser};
 
@@ -180,7 +180,7 @@ app.post("/urls", (request, response) => {
 
 app.post("/urls/:id/delete", (request, response) => {
   let currKey = request.params.id;
-  let currUser = users[request.cookies["user_id"]].id;
+  let currUser = request.cookies["user_id"];
   let urlsFiltered = urlsForUser(currUser);
 
   if (currUser === urlDatabase[currKey].userID) {
@@ -197,7 +197,7 @@ app.post("/urls/:id/delete", (request, response) => {
 app.post("/urls/:id", (request, response) => {
   let newLongURL = request.body.longURL;
   let currKey = request.params.id;
-  let currUser = users[request.cookies["user_id"]].id;
+  let currUser = request.cookies["user_id"];
   let urlsFiltered = urlsForUser(currUser);
 
   if (currUser === urlDatabase[currKey].userID) {
