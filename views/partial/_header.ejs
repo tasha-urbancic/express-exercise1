@@ -5,17 +5,19 @@
 <title>TinyApp</title>
 
 <style>
-p.error {
-  color:red;
-}
+  p.error {
+    color: red;
+  }
 </style>
 
 <% if (error) { %>
-  <p class = 'error'><%=error%></p>
+  <p class='error'>
+    <%=error%>
+  </p>
 <% } %>
 
 <% if (user) { %>
-  
+
   <p>
     <a href='/urls'>See Your TinyUrls</a>
     <a href='/urls/new'>Create a TinyUrl</a>
@@ -29,5 +31,5 @@ p.error {
 
   <a href='/register'>Register</a>
   <a href='/login'>Login</a>
-   
+
 <% } %>

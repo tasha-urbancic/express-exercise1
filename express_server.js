@@ -1,22 +1,23 @@
+// DEFINE GLOBAL VARIABLES FOR LIBRARIES
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
-// const cookieParser = require("cookie-parser");
-const cookieSession = require('cookie-session');
-const bcrypt = require('bcrypt');
+const cookieSession = require("cookie-session");
+const bcrypt = require("bcrypt");
 
-// parse the form data
-app.use(bodyParser.urlencoded({ extended: true }));
+// SET THE APP SETTINGS
 app.set("view engine", "ejs");
-// app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(
+  cookieSession({
+    keys: ["keyname1"]
+  })
+);
 
-app.use(cookieSession({
-  keys: ['fluffybunny', 'fluffypuppy', 'fluffyfishy']
-}));
+//////////////FAKE DATA FOR TESTING////////////////
 
-///////////////////////////////////////////
-
+// URL DATABASE
 const urlDatabase = {
   b2xVn2: {
     fullURL: "http://www.lighthouselabs.ca",
@@ -28,6 +29,7 @@ const urlDatabase = {
   }
 };
 
+// USERS DATABASE
 const users = {
   b7c9W3: {
     id: "b7c9W3",
@@ -41,8 +43,9 @@ const users = {
   }
 };
 
-///////////////////////////////////////////
+//////////////////FUNCTIONS////////////////////
 
+// TO GENERATE A 6 CHARACTER LONG ID CODE
 function generateRandomString() {
   let randomString = "";
   let possible =
@@ -53,9 +56,11 @@ function generateRandomString() {
       Math.floor(Math.random() * possible.length)
     );
   }
+
   return randomString;
 }
 
+// TO FIND A USER BY THEIR EMAIL
 function findUserByEmail(userEmail) {
   for (let user in users) {
     if (users[user].email === userEmail) {
@@ -64,8 +69,10 @@ function findUserByEmail(userEmail) {
   }
 }
 
+// TO FIND A URL THAT THE USER CREATED
 function urlsForUser(ID) {
   let filtered = {};
+
   for (let tinyUrl in urlDatabase) {
     // if the persons id matches the tiny url creator
     if (ID === urlDatabase[tinyUrl].userID) {
@@ -73,31 +80,35 @@ function urlsForUser(ID) {
       filtered[tinyUrl] = urlDatabase[tinyUrl];
     }
   }
+
   return filtered;
 }
 
-///////////////////////////////////////////
+///////////////DEFINE LOCALS/////////////////
 
 app.use(function(request, response, next) {
   response.locals = {
-    // urls: urlDatabase,
     error: undefined,
     user: request.session.user
   };
   next();
 });
 
-// user: users[request.cookies["user_id"]]
+////////////////GET REQUESTS//////////////////
 
-///////////////////////////////////////////
-
+// ROOT
 app.get("/", (request, response) => {
-  // response.render('main_page',{user: users[request.cookies["user_id"]]});
-  response.end('Hello');
+  if (request.session.user) {
+    response.redirect("/urls");
+  } else {
+    response.redirect("/login");
+  }
 });
 
+// SEE ALL URLS
 app.get("/urls", (request, response) => {
-
+  // IF USER IS LOGGED IN, SHOW PAGE
+  // THAT LISTS URLS FOR THAT USER
   if (request.session.user) {
     let currUser = request.session.user.id;
     let urlsFiltered = urlsForUser(currUser);
@@ -108,7 +119,10 @@ app.get("/urls", (request, response) => {
   }
 });
 
+// CREATE NEW TINYURL
 app.get("/urls/new", (request, response) => {
+  // IF THE USER IS LOGGED IN,
+  // SHOW GENERATE NEW URL PAGE
   if (request.session.user) {
     response.render("urls_new");
   } else {
@@ -119,15 +133,19 @@ app.get("/urls/new", (request, response) => {
   }
 });
 
+// REGISTER
 app.get("/register", (request, response) => {
   response.render("registration_page");
 });
 
+// LOGIN
 app.get("/login", (request, response) => {
   response.render("login_page");
 });
 
+// TINYURL
 app.get("/u/:shortURL", (request, response) => {
+  // CHECK THAT THE TINYURL EXISTS, IF IT DOES, REDIRECT TO LONGURL
   if (urlDatabase[request.params.shortURL] === undefined) {
     response.status(404);
     response.render("error-page", {
@@ -140,55 +158,70 @@ app.get("/u/:shortURL", (request, response) => {
   }
 });
 
-// requesting/asking the server
+// SPECIFIC TINYURL EDIT/DELETE
 app.get("/urls/:id", (request, response) => {
+  // HAS THE USER LOGGED IN?
   if (!request.session.user) {
     response.status(401);
     response.render("login_page", {
       error: "401: Unauthorized, Must Log In First"
     });
-    
   }
 
+  // CHECK IF TINYURL EXISTS
+  if (urlDatabase[request.params.id] === undefined) {
+    response.status(403);
+    response.render("error-page", {
+      error: "403: Forbidden, TinyUrl Does Not Exist"
+    });
+  }
+
+  // CURRENT USERS ID
   let currUser = request.session.user.id;
+  // FIND USER'S TINYURLS
   let urlsFiltered = urlsForUser(currUser);
+
+  // CHECK IF THE USER HAS ACCESS
   let access = Object.keys(urlsFiltered).includes(request.params.id);
 
   if (!access) {
     response.status(401);
-    response.render("error-page", {error: `401: Unauthorized, You Don't Have Access To This url`});
-  }
-
-  if (urlDatabase[request.params.id] === undefined) {
-    response.status(403);
     response.render("error-page", {
-      error: "403: Forbidden, TinyUrl Does Not Exist"});
+      error: `401: Unauthorized, You Don't Have Access To This url`
+    });
   }
 
+  // IF PASSES ALL CONDITIONS, CAN EDIT/DELETE THAT URL
   let shortURL = request.params.id;
   let longURL = urlDatabase[request.params.id].fullURL;
   response.render("urls_show", { shortURL: shortURL, longURL: longURL });
 });
 
-///////////////////////////////////////////
+/////////////////POST REQUESTS///////////////////
 
-// posting to the server data (url in this case)
+// CREATE A TINYURL
 app.post("/urls", (request, response) => {
-  let shortURL = generateRandomString();
-  let longURL = request.body.longURL;
+  // CURRENT USER
   let currUser = request.session.user.id;
 
-  urlDatabase[shortURL] = {fullURL: longURL, userID: currUser};
+  // GENERATE A RANDOM STRING
+  let shortURL = generateRandomString();
+  let longURL = request.body.longURL;
+
+  // ADD TINYURL TO DATABASE
+  urlDatabase[shortURL] = { fullURL: longURL, userID: currUser };
 
   response.status(302);
   response.redirect(`/urls/${shortURL}`);
 });
 
+// DELETE A TINY URL
 app.post("/urls/:id/delete", (request, response) => {
   let currKey = request.params.id;
   let currUser = request.session.user.id;
   let urlsFiltered = urlsForUser(currUser);
 
+  // IF THE TINYURL BELONGS TO THE USER, DELETE IT
   if (currUser === urlDatabase[currKey].userID) {
     delete urlDatabase[currKey];
     response.status(200);
@@ -196,59 +229,68 @@ app.post("/urls/:id/delete", (request, response) => {
   } else {
     response.status(403);
     response.render("error-page", {
-      error: "403: Forbidden, Must Be Your TinyUrl To Delete"});
+      error: "403: Forbidden, Must Be Your TinyUrl To Delete"
+    });
   }
 });
 
+// UPDATE YOUR TINYURL'S LONG-URL
 app.post("/urls/:id", (request, response) => {
+  // URL THE USER WANTS TO EDIT
   let newLongURL = request.body.longURL;
+  // CURRENT USER
   let currKey = request.params.id;
+
+  // CURRENT USERS ID
   let currUser = request.session.user.id;
+  // FIND TINYURLS FOR THIS USER
   let urlsFiltered = urlsForUser(currUser);
 
+  // ONLY UPDATE URL IF IT IS THEIRS
   if (currUser === urlDatabase[currKey].userID) {
-    // assign new website to value
     urlDatabase[currKey].fullURL = newLongURL;
     response.redirect("/urls");
   } else {
     response.status(403);
     response.render("error-page", {
-      error: "403: Forbidden, Must Be Your TinyUrl To Update"});
+      error: "403: Forbidden, Must Be Your TinyUrl To Update"
+    });
   }
 });
 
+// AUTHENTICATE LOGIN
 app.post("/login", (request, response) => {
-
   let user = findUserByEmail(request.body.email);
 
+  // IF USER ISN'T IN THE DATABASE
+  // OR IF PASSWORD IS WRONG REDIRECT
+  // ELSE CREATE A COOKIE, AND REDIRECT TO URLS
   if (!user) {
     response.status(404);
-    response.redirect(404, "/login");
+    response.redirect(404, "/register");
   } else if (!bcrypt.compareSync(request.body.password, user.hashedPassword)) {
     response.status(404);
     response.redirect(404, "/login");
   } else {
     console.log("password was right, creating cookie!");
-    // response.cookie("user_id", user);
     request.session.user = user;
     response.redirect("/urls");
   }
 });
 
+// LOGOUT, DELETE COOKIES
 app.post("/logout", (request, response) => {
   let user = request.body.email;
-  // response.clearCookie("user_id", user);
   request.session = null;
   response.redirect("/login");
 });
 
-// pluck _js, library of functions that implement these things
-//  low dash ripoff
-
+// CREATE A NEW USER, AND NEW COOKIE
 app.post("/register", (request, response) => {
   let userEmail = request.body.email;
   let userHashedPassword = bcrypt.hashSync(request.body.password, 10);
 
+  // IF USER DOESN'T ENTER AN EMAIL
   if (!userEmail) {
     response.status(400);
     response.render("registration_page", {
@@ -257,6 +299,7 @@ app.post("/register", (request, response) => {
     return;
   }
 
+  // IF USER DOESN'T ENTER A PASSWORD
   if (!userHashedPassword) {
     response.status(400);
     response.render("login_page", {
@@ -265,6 +308,7 @@ app.post("/register", (request, response) => {
     return;
   }
 
+  // IF USERNAME IS ALREADY TAKEN
   if (findUserByEmail(userEmail)) {
     response.status(403);
     response.render("login_page", {
@@ -273,6 +317,7 @@ app.post("/register", (request, response) => {
     return;
   }
 
+  // ELSE CREATE NEW ENTRY, ADD TO USERS DATABASE
   let randID = generateRandomString();
   users[randID] = {
     id: randID,
@@ -280,16 +325,16 @@ app.post("/register", (request, response) => {
     hashedPassword: userHashedPassword
   };
 
-  // response.cookie("user_id", users[randID].id);
-
+  // ADD COOKIES TO SESSION
   request.session.user = users[randID];
-  
   response.redirect("/urls");
 });
 
-///////////////////////////////////////////
+//////////////////SERVER/////////////////////
 
-//start the server
+// START THE SERVER
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+///////////////////END///////////////////////

@@ -8,8 +8,9 @@
 <body>
   <ul>
 
-    <li> Short URL:
-      <%= `/urls/${shortURL}` %>
+    <li> Short URL: '/urls/
+      <%=shortURL%>' -->
+        <a href=<%=longURL%>><%=longURL%></a>
     </li>
 
     <form action='/urls/<%=shortURL%>' method="POST">
