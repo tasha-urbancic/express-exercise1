@@ -163,9 +163,7 @@ app.get("/urls/:id", (request, response) => {
   // HAS THE USER LOGGED IN?
   if (!request.session.user) {
     response.status(401);
-    response.render("login_page", {
-      error: "401: Unauthorized, Must Log In First"
-    });
+    response.redirect(401, "/login");
   }
 
   // CHECK IF TINYURL EXISTS
