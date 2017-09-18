@@ -100,9 +100,8 @@ app.use(function(request, response, next) {
 app.get("/", (request, response) => {
   if (request.session.user) {
     response.redirect("/urls");
-  } else {
-    response.redirect("/login");
   }
+  response.redirect("/login");
 });
 
 // SEE ALL URLS
@@ -110,8 +109,8 @@ app.get("/urls", (request, response) => {
   // IF USER IS LOGGED IN, SHOW PAGE
   // THAT LISTS URLS FOR THAT USER
   if (request.session.user) {
-    let currUser = request.session.user.id;
-    let urlsFiltered = urlsForUser(currUser);
+    let currentUser = request.session.user.id;
+    let urlsFiltered = urlsForUser(currentUser);
     response.render("urls_index", { urls: urlsFiltered });
   } else {
     response.status(401);
@@ -164,7 +163,6 @@ app.get("/urls/:id", (request, response) => {
   if (!request.session.user) {
     response.status(401);
     response.redirect(401, "/login");
-    return;
   }
 
   // CHECK IF TINYURL EXISTS
@@ -173,13 +171,12 @@ app.get("/urls/:id", (request, response) => {
     response.render("error-page", {
       error: "403: Forbidden, TinyUrl Does Not Exist"
     });
-    return;
   }
 
   // CURRENT USERS ID
-  let currUser = request.session.user.id;
+  let currentUser = request.session.user.id;
   // FIND USER'S TINYURLS
-  let urlsFiltered = urlsForUser(currUser);
+  let urlsFiltered = urlsForUser(currentUser);
 
   // CHECK IF THE USER HAS ACCESS
   let access = Object.keys(urlsFiltered).includes(request.params.id);
@@ -202,7 +199,7 @@ app.get("/urls/:id", (request, response) => {
 // CREATE A TINYURL
 app.post("/urls", (request, response) => {
   // CURRENT USER
-  let currUser = request.session.user.id;
+  let currentUser = request.session.user.id;
 
   // GENERATE A RANDOM STRING
   let shortURL = generateRandomString();
@@ -214,22 +211,23 @@ app.post("/urls", (request, response) => {
 
   if (!hasHttp && !hasHttps) {
     response.redirect(406, '/urls/new');
-  } else {
-    // ADD TINYURL TO DATABASE
-    urlDatabase[shortURL] = { fullURL: longURL, userID: currUser };
-    response.status(302);
-    response.redirect(`/urls/${shortURL}`);
   }
+
+  // ADD TINYURL TO DATABASE
+  urlDatabase[shortURL] = { fullURL: longURL, userID: currentUser };
+  response.status(302);
+  response.redirect(`/urls/${shortURL}`);
+
 });
 
 // DELETE A TINY URL
 app.post("/urls/:id/delete", (request, response) => {
   let currKey = request.params.id;
-  let currUser = request.session.user.id;
-  let urlsFiltered = urlsForUser(currUser);
+  let currentUser = request.session.user.id;
+  let urlsFiltered = urlsForUser(currentUser);
 
   // IF THE TINYURL BELONGS TO THE USER, DELETE IT
-  if (currUser === urlDatabase[currKey].userID) {
+  if (currentUser === urlDatabase[currKey].userID) {
     delete urlDatabase[currKey];
     response.status(200);
     response.redirect("/urls");
@@ -249,12 +247,12 @@ app.post("/urls/:id", (request, response) => {
   let currKey = request.params.id;
 
   // CURRENT USERS ID
-  let currUser = request.session.user.id;
+  let currentUser = request.session.user.id;
   // FIND TINYURLS FOR THIS USER
-  let urlsFiltered = urlsForUser(currUser);
+  let urlsFiltered = urlsForUser(currentUser);
 
   // ONLY UPDATE URL IF IT IS THEIRS
-  if (currUser === urlDatabase[currKey].userID) {
+  if (currentUser === urlDatabase[currKey].userID) {
     urlDatabase[currKey].fullURL = newLongURL;
     response.redirect("/urls");
   } else {
