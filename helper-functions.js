@@ -1,6 +1,11 @@
 const bcrypt = require("bcrypt");
 
-// generates random string for TinyUrl & user ID
+/**
+* Generates random string for TinyUrl & user ID
+*
+* It returns a random  6 charcter string
+* @param {randomString} string
+*/
 function generateRandomString() {
   let randomString = "";
   let possible =
@@ -15,7 +20,15 @@ function generateRandomString() {
   return randomString;
 }
 
-// find user by email
+/**
+* Find user by email. Takes inputs:
+*
+* @param {userEmail} string
+* @param {users} object
+*
+* It returns the user associated with that email.
+* @param {user} object
+*/
 function findUserByEmail(userEmail, users) {
   for (let user in users) {
     if (users[user].email === userEmail) {
@@ -24,7 +37,16 @@ function findUserByEmail(userEmail, users) {
   }
 }
 
-// find urls corresponding to user id
+/**
+* Finds urls corresponding to user id. Takes inputs:
+*
+* @param {ID} string
+* @param {urlDatabase} object
+*
+* It returns a version of urlDatabase that only shows
+* current users urls.
+* @param {filteredUrlDatabase} object
+*/
 function urlsForUser(ID, urlDatabase) {
   let filtered = {};
 
@@ -37,8 +59,16 @@ function urlsForUser(ID, urlDatabase) {
   return filtered;
 }
 
-// handler functions:
-
+/**
+* Handles user not being logged in. Takes inputs:
+*
+* @param {request} object
+* @param {response} object
+*
+* It returns a function, redirect, which redirects
+* to the login page.
+* @param {response.redirect()} function
+*/
 function handleUserNotLoggedIn(request, response) {
   if (!request.session.user) {
     response.status(401);
@@ -46,6 +76,16 @@ function handleUserNotLoggedIn(request, response) {
   }
 }
 
+/**
+* Handles user providing a bad url. Takes inputs:
+*
+* @param {longUrl} string
+* @param {response} object
+*
+* It returns a function, redirect, which redirects
+* to the urls/new page.
+* @param {response.redirect()} function
+*/
 function handleBadUrlPrefix(longURL, response) {
   const hasHttp =
     longURL
@@ -64,6 +104,18 @@ function handleBadUrlPrefix(longURL, response) {
   }
 }
 
+/**
+* Handles user trying to access an unowned url.
+* Takes inputs:
+*
+* @param {currentUser} string
+* @param {urlOwner} string
+* @param {response} object
+*
+* It returns a function, render, which renders
+* the error page.
+* @param {response.render()} function
+*/
 function handleUnownedUrl(currentUser, urlOwner, response) {
   if (currentUser !== urlOwner) {
     response.status(403);
@@ -73,6 +125,18 @@ function handleUnownedUrl(currentUser, urlOwner, response) {
   }
 }
 
+/**
+* Handles user entering bad login info.
+* Takes inputs:
+*
+* @param {user} object
+* @param {request} object
+* @param {response} object
+*
+* It returns a function, redirect, which redirects
+* to the login or register page.
+* @param {response.redirect()} function
+*/
 function handleBadLoginInfo(user, request, response) {
   if (!user) {
     response.status(404);
@@ -83,6 +147,19 @@ function handleBadLoginInfo(user, request, response) {
   }
 }
 
+/**
+* Handles user entering bad registration info.
+* Takes inputs:
+*
+* @param {request} object
+* @param {response} object
+* @param {userHashedPassword} string
+*
+* It returns a function, render, which renders
+* the registration or login page with an error
+* in the header.
+* @param {response.render()} function
+*/
 function handleBadRegister(request, response, userHashedPassword) {
   const userEmail = request.body.email;
 
@@ -101,6 +178,18 @@ function handleBadRegister(request, response, userHashedPassword) {
   }
 }
 
+/**
+* Handles user entering a username already
+* defined.
+* Takes inputs:
+*
+* @param {userEmail} string
+* @param {response} object
+*
+* It returns a function, redirect, which redirects
+* to the login page.
+* @param {response.redirect()} function
+*/
 function handleUsernameTaken(userEmail, response) {
   if (findUserByEmail(userEmail)) {
     response.status(403);
@@ -108,7 +197,19 @@ function handleUsernameTaken(userEmail, response) {
   }
 }
 
-
+/**
+* Handles user entering a url that is not 
+* owned by the user.
+* Takes inputs:
+*
+* @param {request} object
+* @param {response} object
+* @param {urlDatabase} object
+*
+* It returns a function, render, which renders
+* the error-page.
+* @param {response.render()} function
+*/
 function handleUrlNotOwnedByUser(request, response, urlDatabase) {
   const ID = request.params.id;
   const currentUser = request.session.user.id;
@@ -123,6 +224,19 @@ function handleUrlNotOwnedByUser(request, response, urlDatabase) {
   }
 }
 
+/**
+* Handles user entering a url that is not 
+* valid.
+* Takes inputs:
+*
+* @param {response} object
+* @param {id} string
+* @param {urlDatabase} object
+*
+* It returns a function, render, which renders
+* the error-page.
+* @param {response.render()} function
+*/
 function handleUrlNotValid(response, id, urlDatabase) {
   if (urlDatabase[id] === undefined) {
     response.status(403);
