@@ -8,15 +8,16 @@
 <body>
   <ul>
 
-    <li> Short URL: '/urls/
-      <%=shortURL%>' -->
-        <a href=<%=longURL%>><%=longURL%></a>
-    </li>
+    <li> 
 
-    <form action='/urls/<%=shortURL%>' method="POST">
-      <input id="longURL" type="text" name="longURL" value=<%=longURL%>>
-      <button type=‘submit’>Update TinyUrl Link</button>
-    </form>
+      Short URL: '/u/<%=shortURL%>' (<a href=<%=longURL.fullURL%>><%=longURL%></a>)
+
+      <form action='/urls/<%=shortURL%>' method="POST">
+        <input id="longURL" type="text" name="longURL" value=<%=longURL%>>
+        <button type=‘submit’>Update TinyUrl Link</button>
+      </form>
+
+    </li>
 
   </ul>
 </body>

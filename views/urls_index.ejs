@@ -10,20 +10,16 @@
   <ul>
     <% for (var key in urls) { %>
 
-      <li>
+      <li> 
+        Short URL: '/u/<%=key%>' (<a href=<%=urls[key].fullURL%>><%=urls[key].fullURL%></a>)
 
-        '/urls/<%=key%>' -->
-          <a href=<%=urls[key].fullURL%>><%=urls[key].fullURL%></a>
-
-          <a href='/urls/<%=key%>'>Edit</a>
-
-          <form method="POST" action='/urls/<%=key%>/delete'>
-            <button type=‘submit’> DELETE </button>
-          </form>
+        <form method="POST" action='/urls/<%=key%>/delete'>
+          <button type=‘submit’> DELETE </button>
+        </form>
 
       </li>
 
-      <% } %>
+    <% } %>
   </ul>
 
 </body>

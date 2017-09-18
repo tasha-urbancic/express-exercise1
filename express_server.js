@@ -164,6 +164,7 @@ app.get("/urls/:id", (request, response) => {
   if (!request.session.user) {
     response.status(401);
     response.redirect(401, "/login");
+    return;
   }
 
   // CHECK IF TINYURL EXISTS
@@ -172,6 +173,7 @@ app.get("/urls/:id", (request, response) => {
     response.render("error-page", {
       error: "403: Forbidden, TinyUrl Does Not Exist"
     });
+    return;
   }
 
   // CURRENT USERS ID
@@ -212,13 +214,12 @@ app.post("/urls", (request, response) => {
 
   if (!hasHttp && !hasHttps) {
     response.redirect(406, '/urls/new');
+  } else {
+    // ADD TINYURL TO DATABASE
+    urlDatabase[shortURL] = { fullURL: longURL, userID: currUser };
+    response.status(302);
+    response.redirect(`/urls/${shortURL}`);
   }
-
-  // ADD TINYURL TO DATABASE
-  urlDatabase[shortURL] = { fullURL: longURL, userID: currUser };
-
-  response.status(302);
-  response.redirect(`/urls/${shortURL}`);
 });
 
 // DELETE A TINY URL
