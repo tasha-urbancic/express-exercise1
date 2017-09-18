@@ -206,10 +206,11 @@ app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
   let longURL = request.body.longURL;
 
-  console.log(longURL);
-
   // CHECK THAT URL ENTERED HAS HTTP OR HTTPS
-  if (longURL.split('').splice(0, 6).join('') !== 'http://' || longURL.split('').splice(0, 7).join('') !== 'https://') {
+  const hasHttp  = longURL.split('').splice(0, 7).join('') === 'http://';
+  const hasHttps = longURL.split('').splice(0, 8).join('') === 'https://';
+
+  if (!hasHttp && !hasHttps) {
     response.redirect(406, '/urls/new');
   }
 
