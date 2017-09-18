@@ -1,3 +1,4 @@
+//define all packages
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -5,6 +6,7 @@ const bodyParser = require("body-parser");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 
+// set settings
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
@@ -13,6 +15,7 @@ app.use(
   })
 );
 
+// test data
 const urlDatabase = {
   b2xVn2: {
     fullURL: "http://www.lighthouselabs.ca",
@@ -37,6 +40,7 @@ const users = {
   }
 };
 
+// generates random string for TinyUrl & user ID
 function generateRandomString() {
   let randomString = "";
   let possible =
@@ -51,6 +55,7 @@ function generateRandomString() {
   return randomString;
 }
 
+// find user by email
 function findUserByEmail(userEmail) {
   for (let user in users) {
     if (users[user].email === userEmail) {
@@ -59,6 +64,7 @@ function findUserByEmail(userEmail) {
   }
 }
 
+// find urls corresponding to user id
 function urlsForUser(ID) {
   let filtered = {};
 
@@ -70,6 +76,8 @@ function urlsForUser(ID) {
 
   return filtered;
 }
+
+// handler functions:
 
 function handleUserNotLoggedIn(request, response) {
   if (!request.session.user) {
@@ -172,12 +180,14 @@ app.use(function(request, response, next) {
   next();
 });
 
+// home
 app.get("/", (request, response) => {
   handleUserNotLoggedIn(request, response);
 
   response.redirect("/urls");
 });
 
+// dislay user urls
 app.get("/urls", (request, response) => {
   handleUserNotLoggedIn(request, response);
 
@@ -186,20 +196,24 @@ app.get("/urls", (request, response) => {
   response.render("urls_index", { urls: urlsFiltered });
 });
 
+// generate a new tiny url
 app.get("/urls/new", (request, response) => {
   handleUserNotLoggedIn(request, response);
 
   response.render("urls_new");
 });
 
+// register a new user
 app.get("/register", (request, response) => {
   response.render("registration_page");
 });
 
+// login page
 app.get("/login", (request, response) => {
   response.render("login_page");
 });
 
+// link from short url to long url
 app.get("/u/:shortURL", (request, response) => {
 
   handleUrlNotValid(request, response, request.params.shortURL);
@@ -218,6 +232,7 @@ app.get("/urls/:id", (request, response) => {
   response.render("urls_show", { shortURL: shortURL, longURL: longURL });
 });
 
+// generate new tiny url
 app.post("/urls", (request, response) => {
   const longURL = request.body.longURL;
   handleBadUrlPrefix(longURL);
@@ -229,6 +244,7 @@ app.post("/urls", (request, response) => {
   response.redirect(302, `/urls/${shortURL}`);
 });
 
+// delete tiny url
 app.post("/urls/:id/delete", (request, response) => {
   const currentKey = request.params.id;
   const currentUser = request.session.user.id;
@@ -240,6 +256,7 @@ app.post("/urls/:id/delete", (request, response) => {
   response.redirect("/urls");
 });
 
+// edit tiny url
 app.post("/urls/:id", (request, response) => {
   const newLongURL = request.body.longURL;
   const currentKey = request.params.id;
@@ -250,6 +267,7 @@ app.post("/urls/:id", (request, response) => {
   response.redirect("/urls");
 });
 
+// authenticate login, create cookie
 app.post("/login", (request, response) => {
   const user = findUserByEmail(request.body.email);
   handleBadLoginInfo(user, request, response);
@@ -258,12 +276,14 @@ app.post("/login", (request, response) => {
   response.redirect("/urls");
 });
 
+// log user out, delete cookie
 app.post("/logout", (request, response) => {
   const user = request.body.email;
   request.session = null;
   response.redirect("/login");
 });
 
+// create new user
 app.post("/register", (request, response) => {
   const userHashedPassword = bcrypt.hashSync(request.body.password, 10);
   handleBadRegister(request, response, userHashedPassword);
@@ -281,6 +301,7 @@ app.post("/register", (request, response) => {
   response.redirect("/urls");
 });
 
+// listen on port
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
