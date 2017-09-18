@@ -69,8 +69,6 @@ app.get("/urls", (request, response) => {
 app.get("/urls/new", (request, response) => {
   helperFunctions.handleUserNotLoggedIn(request, response);
 
-  // console.log(`urlDatabase: ${Object.keys(urlDatabase)}`);
-
   response.render("urls_new");
 });
 
@@ -111,11 +109,8 @@ app.post("/urls", (request, response) => {
 
   const currentUser = request.session.user.id;
   const shortURL = helperFunctions.generateRandomString();
+
   urlDatabase[shortURL] = { fullURL: longURL, userID: currentUser };
-  // console.log(currentUser);
-  // console.log(`shortURL: ${shortURL}`);
-  // console.log(`urlDatabase: ${Object.keys(urlDatabase)}`);
-  // console.log(urlDatabase[shortURL]);
   response.status(302);
   response.redirect(302, `/urls/${shortURL}`);
 });
@@ -124,7 +119,6 @@ app.post("/urls", (request, response) => {
 app.post("/urls/:id/delete", (request, response) => {
   const currentKey = request.params.id;
   const currentUser = request.session.user.id;
-  // const urlsFiltered = urlsForUser(currentUser);
 
   helperFunctions.handleUnownedUrl(currentUser, urlDatabase[currentKey].userID, response);
   delete urlDatabase[currentKey];
